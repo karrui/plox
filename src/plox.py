@@ -1,9 +1,12 @@
 import sys
 
+from scanner import Scanner
+from error import Error
+
 
 class Plox:
     def __init__(self) -> None:
-        print(sys.argv)
+
         # 1st element of sys.argv is always invoked file
         if len(sys.argv) > 2:
             print('Usage: plox [script]')
@@ -13,22 +16,28 @@ class Plox:
         else:
             self.run_prompt()
 
-    def run_file(self, file_path: str):
+    def run_file(self, file_path: str) -> None:
         with open(file_path) as file:
             file_data = file.read()
             self.run(file_data)
-            # TODO: Handle error
+            if (Error.had_error):
+                sys.exit(65)
 
-    def run(self, line):
-        pass
+    def run(self, source: str):
+        scanner = Scanner(source)
+        tokens = scanner.scan_tokens()
 
-    def run_prompt(self):
+        for token in tokens:
+            print(token)
+
+    def run_prompt(self) -> None:
         while True:
             try:
                 line = input("> ")
                 if line == "":
                     break
                 self.run(line)
+                Error.had_error = False  # Reset errors if any in prompt
             except EOFError:
                 break
 
