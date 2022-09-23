@@ -1,5 +1,6 @@
 from _token import Token
 from error import Error
+from utils.strings import is_alnum
 from token_type import TokenType as T
 
 
@@ -81,6 +82,11 @@ class Scanner:
         self._add_token_literal(T.NUMBER, float(
             self._source[self._start: self._current]))
 
+    def _identifier(self) -> None:
+        while is_alnum(self._peek()):
+            self._advance()
+        self._add_token(T.IDENTIFIER)
+
     def scan_token(self) -> None:
         c = self._advance()
         match c:
@@ -128,5 +134,7 @@ class Scanner:
                 self._string()
             case c if c.isdigit():
                 self._number()
+            case c if c.isalpha():
+                self._identifier()
             case _:
                 Error.error(self._line, "Unexpected character.")
