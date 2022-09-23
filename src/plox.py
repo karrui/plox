@@ -1,11 +1,11 @@
 import sys
 
 from scanner import Scanner
+from error import Error
 
 
 class Plox:
     def __init__(self) -> None:
-        self.had_error = False
 
         # 1st element of sys.argv is always invoked file
         if len(sys.argv) > 2:
@@ -20,7 +20,7 @@ class Plox:
         with open(file_path) as file:
             file_data = file.read()
             self.run(file_data)
-            if (self.had_error):
+            if (Error.had_error):
                 sys.exit(65)
 
     def run(self, source: str):
@@ -37,16 +37,9 @@ class Plox:
                 if line == "":
                     break
                 self.run(line)
-                self.had_error = False  # Reset errors if any in prompt
+                Error.had_error = False  # Reset errors if any in prompt
             except EOFError:
                 break
-
-    def error(self, line: int, message: str) -> None:
-        self.report(line, '', message)
-
-    def report(self, line: int, where: str, message: str) -> None:
-        print(f"[line {line}] Error{where}: {message}")
-        self.had_error = True
 
 
 if __name__ == "__main__":
