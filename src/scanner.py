@@ -23,8 +23,9 @@ class Scanner:
         return self._current >= len(self._source)
 
     def _advance(self) -> str:
+        next_char = self._source[self._current]
         self._current += 1
-        return self._source[self._current - 1]
+        return next_char
 
     def _add_token(self, type: T) -> None:
         self._add_token_literal(type, None)
@@ -46,6 +47,11 @@ class Scanner:
             return '\0'
         return self._source[self._current]
 
+    def _peek_next(self) -> str:
+        if self._current + 1 >= len(self._source):
+            return '\0'
+        return self._source[self._current + 1]
+
     def _string(self) -> None:
         while self._peek() != '"' and not self._is_at_end():
             if self._peek() == '\n':
@@ -59,6 +65,21 @@ class Scanner:
         # Trim the surrounding quotes.
         value = self._source[self._start+1:self._current - 1]
         self._add_token_literal(T.STRING, value)
+
+    def _number(self) -> None:
+        while self._peek().isdigit():
+            self._advance()
+
+        # Look for a fractional part.
+        # TODO: Fix bug where double dot causes invalid parsing, e.g.
+        # 1234.52890.4 -> [NUMBER 1234.52890, DOT, NUMBER 4.0]
+        if self._peek() == '.' and self._peek_next().isdigit():
+            # Consume the "."
+            self._advance()
+            while self._peek().isdigit():
+                self._advance()
+        self._add_token_literal(T.NUMBER, float(
+            self._source[self._start: self._current]))
 
     def scan_token(self) -> None:
         c = self._advance()
@@ -105,5 +126,7 @@ class Scanner:
                 self._line += 1
             case '"':
                 self._string()
+            case c if c.isdigit():
+                self._number()
             case _:
                 Error.error(self._line, "Unexpected character.")
