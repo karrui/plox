@@ -85,5 +85,9 @@ class Scanner:
                         self._advance()
                 else:
                     self._add_token(T.SLASH)
+            case ' ' | '\r' | '\t':
+                pass
+            case '\n':
+                self.line += 1
             case _:
                 Error.error(self.line, "Unexpected character.")
