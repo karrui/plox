@@ -1,5 +1,7 @@
 import sys
 
+from scanner import Scanner
+
 
 class Plox:
     def __init__(self) -> None:
@@ -19,8 +21,12 @@ class Plox:
             self.run(file_data)
             # TODO: Handle error
 
-    def run(self, line):
-        pass
+    def run(self, source: str):
+        scanner = Scanner(source)
+        tokens = scanner.scan_tokens()
+
+        for token in tokens:
+            print(token)
 
     def run_prompt(self):
         while True:
