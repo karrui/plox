@@ -1,7 +1,7 @@
 from _token import Token
 from error import Error
 from utils.strings import is_alnum
-from token_type import TokenType as T
+from token_type import TokenType as T, KEYWORDS_DICT
 
 
 class Scanner:
@@ -85,7 +85,12 @@ class Scanner:
     def _identifier(self) -> None:
         while is_alnum(self._peek()):
             self._advance()
-        self._add_token(T.IDENTIFIER)
+
+        text = self._source[self._start:self._current]
+        token_type = KEYWORDS_DICT.get(text)
+        if token_type == None:
+            token_type = T.IDENTIFIER
+        self._add_token(token_type)
 
     def scan_token(self) -> None:
         c = self._advance()
