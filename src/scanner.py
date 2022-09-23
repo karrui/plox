@@ -33,6 +33,14 @@ class Scanner:
         text = self.source[self.start:self.current]
         self.tokens.append(Token(type, text, literal, self.line))
 
+    def match(self, expected: str) -> bool:
+        if self.is_at_end():
+            return False
+        if self.source[self.current] != expected:
+            return False
+        self.current += 1
+        return True
+
     def scan_token(self) -> None:
         c = self.advance()
         match c:
@@ -56,5 +64,14 @@ class Scanner:
                 self.add_token(T.SEMICOLON)
             case '*':
                 self.add_token(T.STAR)
+            case '!':
+                self.add_token(T.BANG_EQUAL if self.match('=') else T.BANG)
+            case '=':
+                self.add_token(T.EQUAL_EQUAL if self.match('=') else T.EQUAL)
+            case '<':
+                self.add_token(T.LESS_EQUAL if self.match('=') else T.LESS)
+            case '>':
+                self.add_token(
+                    T.GREATER_EQUAL if self.match('=') else T.GREATER)
             case _:
                 Error.error(self.line, "Unexpected character.")
