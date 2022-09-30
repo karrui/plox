@@ -1,7 +1,8 @@
 from typing import List
 from decorators.visitor import visitor
-from expr import Binary, Expr, Grouping, Literal, Unary
-from stmt import Expression, Print, Stmt
+from environment import Environment
+from expr import Binary, Expr, Grouping, Literal, Unary, Variable
+from stmt import Expression, Print, Stmt, Var
 from _token import Token
 from token_type import TokenType as T
 from utils.equality import is_equal
@@ -19,6 +20,8 @@ def check_number_operands(operator: Token, *operands: object):
 
 
 class Interpreter:
+    _environment = Environment()
+
     def _evaluate(self, expr: Expr):
         return expr.accept(self)
 
@@ -85,6 +88,10 @@ class Interpreter:
         # Unreachable
         return None
 
+    @visitor(Variable)
+    def visit(self, expr: Variable):
+        return self._environment.get(expr.name)
+
     @visitor(Expression)
     def visit(self, stmt: Expression):
         self._evaluate(stmt.expression)
@@ -94,6 +101,14 @@ class Interpreter:
     def visit(self, stmt: Print):
         value = self._evaluate(stmt.expression)
         print(stringify(value))
+        return None
+
+    @visitor(Var)
+    def visit(self, stmt: Var):
+        value = None
+        if stmt.initializer is not None:
+            value = self._evaluate(stmt.initializer)
+        self._environment.define(stmt.name.lexeme, value)
         return None
 
     def _execute(self, stmt: Stmt):
