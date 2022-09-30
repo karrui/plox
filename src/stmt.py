@@ -28,6 +28,16 @@ class Expression(Stmt):
 
 
 @dataclass(frozen=True)
+class If(Stmt):
+    condition: Expr
+    then_branch: Stmt
+    else_branch: Stmt
+
+    def accept(self, visitor):
+        return visitor.visit(self)
+
+
+@dataclass(frozen=True)
 class Print(Stmt):
     expression: Expr
 

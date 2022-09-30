@@ -71,6 +71,7 @@ class GenerateAst:
         define_ast(output_dir, "Stmt", [
             "Block : typing.List[Stmt] statements",
             "Expression : Expr expression",
+            "If : Expr condition, Stmt then_branch, Stmt else_branch",
             "Print : Expr expression",
             "Var : Token name, Expr initializer"
         ])
