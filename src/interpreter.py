@@ -1,7 +1,7 @@
 from typing import List
 from decorators.visitor import visitor
 from environment import Environment
-from expr import Assign, Binary, Expr, Grouping, Literal, Unary, Variable
+from expr import Assign, Binary, Expr, Grouping, Literal, Logical, Unary, Variable
 from stmt import Block, Expression, If, Print, Stmt, Var
 from _token import Token
 from token_type import TokenType as T
@@ -109,6 +109,19 @@ class Interpreter:
         value = self._evaluate(expr.value)
         self._environment.assign(expr.name, value)
         return value
+
+    @visitor(Logical)
+    def visit(self, expr: Logical):
+        left = self._evaluate(expr.left)
+        if expr.operator.type == T.OR:
+            # Short circuit if truthy.
+            if is_truthy(left):
+                return left
+        else:
+            if not is_truthy(left):
+                return left
+        # Evaluate right if left is not truthy.
+        return self._evaluate(expr.right)
 
     @visitor(Expression)
     def visit(self, stmt: Expression):

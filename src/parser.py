@@ -1,7 +1,7 @@
 from typing import List
 from error import Error
 from _token import Token
-from expr import Assign, Binary, Expr, Grouping, Literal, Unary, Variable
+from expr import Assign, Binary, Expr, Grouping, Literal, Logical, Unary, Variable
 from stmt import Block, Expression, If, Print, Stmt, Var
 from token_type import TokenType as T
 
@@ -120,8 +120,24 @@ class Parser:
             expr = Binary(expr, operator, right)
         return expr
 
-    def _assignment(self):
+    def _and(self):
         expr = self._equality()
+        while self._match(T.AND):
+            operator = self._previous()
+            right = self._equality
+            expr = Logical(expr, operator, right)
+        return expr
+
+    def _or(self):
+        expr = self._and()
+        while self._match(T.OR):
+            operator = self._previous()
+            right = self._and()
+            expr = Logical(expr, operator, right)
+        return expr
+
+    def _assignment(self):
+        expr = self._or()
 
         if self._match(T.EQUAL):
             equals = self._previous()
