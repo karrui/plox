@@ -12,6 +12,14 @@ class Stmt:
 
 
 @dataclass(frozen=True)
+class Block(Stmt):
+    statements: typing.List[Stmt]
+
+    def accept(self, visitor):
+        return visitor.visit(self)
+
+
+@dataclass(frozen=True)
 class Expression(Stmt):
     expression: Expr
 

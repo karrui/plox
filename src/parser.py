@@ -2,7 +2,7 @@ from typing import List
 from error import Error
 from _token import Token
 from expr import Assign, Binary, Expr, Grouping, Literal, Unary, Variable
-from stmt import Expression, Print, Stmt, Var
+from stmt import Block, Expression, Print, Stmt, Var
 from token_type import TokenType as T
 
 
@@ -145,9 +145,18 @@ class Parser:
         self._consume(T.SEMICOLON, "Expect ';' after expression.")
         return Expression(expr)
 
+    def _block(self):
+        statements: List[Stmt] = []
+        while not self._check(T.RIGHT_BRACE) and not self._is_at_end():
+            statements.append(self._declaration())
+        self._consume(T.RIGHT_BRACE, "Expect '}' after block.")
+        return statements
+
     def _statement(self):
         if self._match(T.PRINT):
             return self._print_statement()
+        if self._match(T.LEFT_BRACE):
+            return Block(self._block())
         return self._expression_statement()
 
     def _var_declaration(self):

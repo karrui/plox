@@ -69,6 +69,7 @@ class GenerateAst:
         ])
 
         define_ast(output_dir, "Stmt", [
+            "Block : typing.List[Stmt] statements",
             "Expression : Expr expression",
             "Print : Expr expression",
             "Var : Token name, Expr initializer"

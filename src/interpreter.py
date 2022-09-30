@@ -2,7 +2,7 @@ from typing import List
 from decorators.visitor import visitor
 from environment import Environment
 from expr import Assign, Binary, Expr, Grouping, Literal, Unary, Variable
-from stmt import Expression, Print, Stmt, Var
+from stmt import Block, Expression, Print, Stmt, Var
 from _token import Token
 from token_type import TokenType as T
 from utils.equality import is_equal
@@ -24,6 +24,18 @@ class Interpreter:
 
     def _evaluate(self, expr: Expr):
         return expr.accept(self)
+
+    def _execute(self, stmt: Stmt):
+        stmt.accept(self)
+
+    def _execute_block(self, statements: List[Stmt], environment: Environment):
+        previous = self._environment
+        try:
+            self._environment = environment
+            for statement in statements:
+                self._execute(statement)
+        finally:
+            self._environment = previous
 
     @visitor(Literal)
     def visit(self, expr: Literal):
@@ -117,8 +129,10 @@ class Interpreter:
         self._environment.define(stmt.name.lexeme, value)
         return None
 
-    def _execute(self, stmt: Stmt):
-        stmt.accept(self)
+    @visitor(Block)
+    def visit(self, stmt: Block):
+        self._execute_block(stmt.statements, Environment(self._environment))
+        return None
 
     def interpret(self, statements: List[Stmt]):
         try:
