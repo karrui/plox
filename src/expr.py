@@ -1,6 +1,7 @@
 from abc import abstractclassmethod
 import typing
 from dataclasses import dataclass
+from expr import Expr
 from _token import Token
 
 
@@ -40,6 +41,14 @@ class Literal(Expr):
 class Unary(Expr):
     operator: Token
     right: Expr
+
+    def accept(self, visitor):
+        return visitor.visit(self)
+
+
+@dataclass(frozen=True)
+class Variable(Expr):
+    name: Token
 
     def accept(self, visitor):
         return visitor.visit(self)

@@ -15,6 +15,7 @@ def define_ast(output_dir: str, base_name: str, types: List[str]):
             "from abc import abstractclassmethod\n",
             "import typing\n",
             "from dataclasses import dataclass\n",
+            "from expr import Expr\n",
             "from _token import Token\n\n\n",
             f"class {base_class_name}:\n",
             f"{INDENT}@abstractclassmethod\n",
@@ -56,12 +57,14 @@ class GenerateAst:
             "Binary : Expr left, Token operator, Expr right",
             "Grouping : Expr expression",
             "Literal : typing.Any value",
-            "Unary : Token operator, Expr right"
+            "Unary : Token operator, Expr right",
+            "Variable : Token name"
         ])
 
         define_ast(output_dir, "Stmt", [
             "Expression : Expr expression",
-            "Print : Expr expression"
+            "Print : Expr expression",
+            "Var : Token name, Expr initializer"
         ])
 
 
