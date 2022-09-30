@@ -52,3 +52,12 @@ class Var(Stmt):
 
     def accept(self, visitor):
         return visitor.visit(self)
+
+
+@dataclass(frozen=True)
+class While(Stmt):
+    condition: Expr
+    body: Stmt
+
+    def accept(self, visitor):
+        return visitor.visit(self)

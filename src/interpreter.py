@@ -2,7 +2,7 @@ from typing import List
 from decorators.visitor import visitor
 from environment import Environment
 from expr import Assign, Binary, Expr, Grouping, Literal, Logical, Unary, Variable
-from stmt import Block, Expression, If, Print, Stmt, Var
+from stmt import Block, Expression, If, Print, Stmt, Var, While
 from _token import Token
 from token_type import TokenType as T
 from utils.equality import is_equal
@@ -153,6 +153,12 @@ class Interpreter:
             self._execute(stmt.then_branch)
         elif stmt.else_branch is not None:
             self._execute(stmt.else_branch)
+        return None
+
+    @visitor(While)
+    def visit(self, stmt: While):
+        while is_truthy(self._evaluate(stmt.condition)):
+            self._execute(stmt.body)
         return None
 
     def interpret(self, statements: List[Stmt]):

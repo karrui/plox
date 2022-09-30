@@ -2,7 +2,7 @@ from typing import List
 from error import Error
 from _token import Token
 from expr import Assign, Binary, Expr, Grouping, Literal, Logical, Unary, Variable
-from stmt import Block, Expression, If, Print, Stmt, Var
+from stmt import Block, Expression, If, Print, Stmt, Var, While
 from token_type import TokenType as T
 
 
@@ -180,6 +180,14 @@ class Parser:
             else_branch = self._statement()
         return If(condition, then_branch, else_branch)
 
+    def _while_statement(self):
+        self._consume(T.LEFT_PAREN,  "Expect '(' after 'while'.")
+        condition = self._expression()
+        self._consume(T.RIGHT_PAREN, "Expect ')' after condition.")
+
+        body = self._statement()
+        return While(condition, body)
+
     def _statement(self):
         if self._match(T.PRINT):
             return self._print_statement()
@@ -187,6 +195,8 @@ class Parser:
             return Block(self._block())
         if self._match(T.IF):
             return self._if_statement()
+        if self._match(T.WHILE):
+            return self._while_statement()
         return self._expression_statement()
 
     def _var_declaration(self):
