@@ -1,6 +1,7 @@
-from ast import Expression
+from typing import List
 from decorators.visitor import visitor
 from expr import Binary, Expr, Grouping, Literal, Unary
+from stmt import Expression, Print, Stmt
 from _token import Token
 from token_type import TokenType as T
 from utils.equality import is_equal
@@ -39,7 +40,6 @@ class Interpreter:
                 return -float(right)
             case T.BANG:
                 return not is_truthy(right)
-
         # Unreachable
         return None
 
@@ -82,13 +82,26 @@ class Interpreter:
                 return not is_equal(left, right)
             case T.EQUAL_EQUAL:
                 return is_equal(left, right)
-
         # Unreachable
         return None
 
-    def interpret(self, expression: Expr):
+    @visitor(Expression)
+    def visit(self, stmt: Expression):
+        self._evaluate(stmt.expression)
+        return None
+
+    @visitor(Print)
+    def visit(self, stmt: Print):
+        value = self._evaluate(stmt.expression)
+        print(stringify(value))
+        return None
+
+    def _execute(self, stmt: Stmt):
+        stmt.accept(self)
+
+    def interpret(self, statements: List[Stmt]):
         try:
-            value = self._evaluate(expression)
-            print(stringify(value))
+            for statement in statements:
+                self._execute(statement)
         except LoxRuntimeError as err:
             Error.runtime_error(err)

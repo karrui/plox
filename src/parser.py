@@ -2,6 +2,7 @@ from typing import List
 from error import Error
 from _token import Token
 from expr import Binary, Expr, Grouping, Literal, Unary
+from stmt import Expression, Print, Stmt
 from token_type import TokenType as T
 
 
@@ -119,9 +120,24 @@ class Parser:
     def _expression(self) -> Expr:
         return self._equality()
 
+    def _print_statement(self) -> Print:
+        value = self._expression()
+        self._consume(T.SEMICOLON, "Expect ';' after value.")
+        return Print(value)
+
+    def _expression_statement(self):
+        expr = self._expression()
+        self._consume(T.SEMICOLON, "Expect ';' after expression.")
+        return Expression(expr)
+
+    def _statement(self) -> Stmt:
+        if self._match(T.PRINT):
+            return self._print_statement()
+        return self._expression_statement()
+
     # Finally public functions
-    def parse(self):
-        try:
-            return self._expression()
-        except ParseError:
-            return None
+    def parse(self) -> List[Stmt]:
+        statements: List[Stmt] = []
+        while not self._is_at_end():
+            statements.append(self._statement())
+        return statements

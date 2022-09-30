@@ -12,11 +12,14 @@ def define_ast(output_dir: str, base_name: str, types: List[str]):
     # Write mode, clears file contents.
     with open(path, 'w') as file:
         file.writelines([
+            "from abc import abstractclassmethod\n",
             "import typing\n",
             "from dataclasses import dataclass\n",
             "from _token import Token\n\n\n",
             f"class {base_class_name}:\n",
-            f"{INDENT}pass\n",
+            f"{INDENT}@abstractclassmethod\n",
+            f"{INDENT}def accept() -> typing.Any:\n",
+            f"{INDENT}{INDENT}pass\n",
         ])
 
         # The AST classes
@@ -54,6 +57,11 @@ class GenerateAst:
             "Grouping : Expr expression",
             "Literal : typing.Any value",
             "Unary : Token operator, Expr right"
+        ])
+
+        define_ast(output_dir, "Stmt", [
+            "Expression : Expr expression",
+            "Print : Expr expression"
         ])
 
 

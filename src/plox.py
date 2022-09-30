@@ -34,13 +34,13 @@ class Plox:
         scanner = Scanner(source)
         tokens = scanner.scan_tokens()
         parser = Parser(tokens)
-        expression = parser.parse()
+        statements = parser.parse()
 
         # Stop if there was a syntax error.
         if Error.had_error:
             return
 
-        self.interpreter.interpret(expression)
+        self.interpreter.interpret(statements)
 
     def run_prompt(self) -> None:
         while True:
