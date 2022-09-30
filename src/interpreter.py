@@ -1,7 +1,7 @@
 from typing import List
 from decorators.visitor import visitor
 from environment import Environment
-from expr import Binary, Expr, Grouping, Literal, Unary, Variable
+from expr import Assign, Binary, Expr, Grouping, Literal, Unary, Variable
 from stmt import Expression, Print, Stmt, Var
 from _token import Token
 from token_type import TokenType as T
@@ -91,6 +91,12 @@ class Interpreter:
     @visitor(Variable)
     def visit(self, expr: Variable):
         return self._environment.get(expr.name)
+
+    @visitor(Assign)
+    def visit(self, expr: Assign):
+        value = self._evaluate(expr.value)
+        self._environment.assign(expr.name, value)
+        return value
 
     @visitor(Expression)
     def visit(self, stmt: Expression):

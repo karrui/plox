@@ -60,6 +60,7 @@ class GenerateAst:
             sys.exit(64)
         output_dir = sys.argv[1]
         define_ast(output_dir, "Expr", [
+            "Assign : Token name, Expr value",
             "Binary : Expr left, Token operator, Expr right",
             "Grouping : Expr expression",
             "Literal : typing.Any value",

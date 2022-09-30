@@ -11,6 +11,15 @@ class Expr:
 
 
 @dataclass(frozen=True)
+class Assign(Expr):
+    name: Token
+    value: Expr
+
+    def accept(self, visitor):
+        return visitor.visit(self)
+
+
+@dataclass(frozen=True)
 class Binary(Expr):
     left: Expr
     operator: Token
