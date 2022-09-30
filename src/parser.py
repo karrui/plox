@@ -188,6 +188,77 @@ class Parser:
         body = self._statement()
         return While(condition, body)
 
+    def _for_statement(self):
+        """Desugaring technique to avoid handling/creating a new AST node"""
+        self._consume(T.LEFT_PAREN,  "Expect '(' after 'for'.")
+        initializer: Expr = None
+
+        if self._match(T.SEMICOLON):
+            """
+            If the token following `'('` is immediately semicolon, then
+            then initializer has been omitted:
+            if (; <condition>; <increment>)
+            """
+            pass
+        elif self._match(T.VAR):
+            initializer = self._var_declaration()
+        else:
+            """
+            Must be expression statement if not variable at this point.
+            """
+            initializer = self._expression_statement()
+
+        condition: Expr = None
+        if not self._check(T.SEMICOLON):
+            condition = self._expression()
+        self._consume(T.SEMICOLON, "Expect ';' after loop condition.")
+
+        increment: Expr = None
+        if not self._check(T.RIGHT_PAREN):
+            increment = self._expression()
+        self._consume(T.RIGHT_PAREN, "Expect ')' after for clauses.")
+
+        body = self._statement()
+
+        """
+        Various pieces of the `for` loop has been parsed, synthesize AST nodes now.
+        Basically turning:
+            for (var i = 0; i < 10; i = i + 1) print i;
+        into:
+            {
+                var i = 0;
+                while (i < 10) {
+                    print i;
+                    i = i + 1;
+                }
+            }
+        
+        Build from the bottom up.
+        """
+
+        """
+        Handle increment clause if there is one. Executes after the body in each iteration of loop.
+        The `print i; i = i + 1;` portion.
+        """
+        if increment is not None:
+            body = Block([body, Expression(increment)])
+
+        """
+        Build the loop using a primitive while loop.
+        If condition is omitted, force infinite loop using True.
+        """
+        if condition is None:
+            condition = Literal(True)
+        body = While(condition, body)
+
+        """
+        If there is initializer, run once before the entire loop.
+        """
+        if initializer is not None:
+            body = Block([initializer, body])
+
+        return body
+
     def _statement(self):
         if self._match(T.PRINT):
             return self._print_statement()
@@ -197,6 +268,8 @@ class Parser:
             return self._if_statement()
         if self._match(T.WHILE):
             return self._while_statement()
+        if self._match(T.FOR):
+            return self._for_statement()
         return self._expression_statement()
 
     def _var_declaration(self):
