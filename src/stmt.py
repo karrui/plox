@@ -2,35 +2,25 @@ from abc import abstractclassmethod
 import typing
 from dataclasses import dataclass
 from _token import Token
+from expr import Expr
 
 
-class Expr:
+class Stmt:
     @abstractclassmethod
     def accept() -> typing.Any:
         pass
 
 
 @dataclass(frozen=True)
-class Assign(Expr):
-    name: Token
-    value: Expr
+class Block(Stmt):
+    statements: typing.List[Stmt]
 
     def accept(self, visitor):
         return visitor.visit(self)
 
 
 @dataclass(frozen=True)
-class Binary(Expr):
-    left: Expr
-    operator: Token
-    right: Expr
-
-    def accept(self, visitor):
-        return visitor.visit(self)
-
-
-@dataclass(frozen=True)
-class Grouping(Expr):
+class Expression(Stmt):
     expression: Expr
 
     def accept(self, visitor):
@@ -38,25 +28,17 @@ class Grouping(Expr):
 
 
 @dataclass(frozen=True)
-class Literal(Expr):
-    value: typing.Any
+class Print(Stmt):
+    expression: Expr
 
     def accept(self, visitor):
         return visitor.visit(self)
 
 
 @dataclass(frozen=True)
-class Unary(Expr):
-    operator: Token
-    right: Expr
-
-    def accept(self, visitor):
-        return visitor.visit(self)
-
-
-@dataclass(frozen=True)
-class Variable(Expr):
+class Var(Stmt):
     name: Token
+    initializer: Expr
 
     def accept(self, visitor):
         return visitor.visit(self)

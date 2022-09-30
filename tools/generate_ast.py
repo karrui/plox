@@ -12,11 +12,21 @@ def define_ast(output_dir: str, base_name: str, types: List[str]):
     # Write mode, clears file contents.
     with open(path, 'w') as file:
         file.writelines([
+            "from abc import abstractclassmethod\n",
             "import typing\n",
             "from dataclasses import dataclass\n",
-            "from _token import Token\n\n\n",
+            "from _token import Token\n"
+        ])
+
+        if base_class_name != "Expr":
+            file.write("from expr import Expr\n")
+        file.write('\n\n')
+
+        file.writelines([
             f"class {base_class_name}:\n",
-            f"{INDENT}pass\n",
+            f"{INDENT}@abstractclassmethod\n",
+            f"{INDENT}def accept() -> typing.Any:\n",
+            f"{INDENT}{INDENT}pass\n",
         ])
 
         # The AST classes
@@ -50,10 +60,19 @@ class GenerateAst:
             sys.exit(64)
         output_dir = sys.argv[1]
         define_ast(output_dir, "Expr", [
+            "Assign : Token name, Expr value",
             "Binary : Expr left, Token operator, Expr right",
             "Grouping : Expr expression",
             "Literal : typing.Any value",
-            "Unary : Token operator, Expr right"
+            "Unary : Token operator, Expr right",
+            "Variable : Token name"
+        ])
+
+        define_ast(output_dir, "Stmt", [
+            "Block : typing.List[Stmt] statements",
+            "Expression : Expr expression",
+            "Print : Expr expression",
+            "Var : Token name, Expr initializer"
         ])
 
 
