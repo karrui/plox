@@ -5,29 +5,6 @@ from typing import List
 INDENT = "    "
 
 
-def define_visitor(file: TextIOWrapper, base_class_name: str, types: List[str]):
-    file.write("\n\nclass AstVisitor:\n")
-
-    """
-    Output wanted: 
-
-    @visitor(Binary)
-    def visit(self, expr):
-        return "something"
-
-    @visitor(Grouping)
-    def visit(self, expr):
-        return "another thing"
-    """
-    for type in types:
-        class_name = type.split(':')[0].strip()
-        file.writelines([
-            f"{INDENT}@visitor({class_name})\n",
-            f"{INDENT}def visit(self, expr):\n",
-            f"{INDENT}{INDENT}pass\n\n"
-        ])
-
-
 def define_ast(output_dir: str, base_name: str, types: List[str]):
     path = f"{output_dir}/{base_name.lower()}.py"
     base_class_name = base_name.title().replace(" ", "")
@@ -37,7 +14,6 @@ def define_ast(output_dir: str, base_name: str, types: List[str]):
         file.writelines([
             "import typing\n",
             "from dataclasses import dataclass\n",
-            "from decorators.visitor import visitor\n",
             "from _token import Token\n\n\n",
             f"class {base_class_name}:\n",
             f"{INDENT}pass\n",
@@ -49,7 +25,10 @@ def define_ast(output_dir: str, base_name: str, types: List[str]):
             define_type(file, base_class_name,
                         class_name.strip(), fields.strip())
 
-        define_visitor(file, base_class_name, types)
+            file.writelines([
+                f"\n{INDENT}def accept(self, visitor):\n",
+                f"{INDENT}{INDENT}return visitor.visit(self)\n"
+            ])
 
 
 def define_type(file: TextIOWrapper, base_class_name: str, class_name: str, fields: str):

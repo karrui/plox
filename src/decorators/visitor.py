@@ -1,5 +1,6 @@
 # Retrieved from https://tavianator.com/2014/python_visitor.html
 
+
 # Stores the actual visitor methods
 _methods = {}
 
