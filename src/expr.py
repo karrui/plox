@@ -6,7 +6,7 @@ from _token import Token
 
 class Expr:
     @abstractclassmethod
-    def accept():
+    def accept() -> typing.Any:
         pass
 
 
