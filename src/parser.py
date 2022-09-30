@@ -1,8 +1,8 @@
 from typing import List
 from error import Error
 from _token import Token
-from expr import Binary, Expr, Grouping, Literal, Unary
-from stmt import Expression, Print, Stmt
+from expr import Binary, Expr, Grouping, Literal, Unary, Variable
+from stmt import Expression, Print, Stmt, Var
 from token_type import TokenType as T
 
 
@@ -68,6 +68,9 @@ class Parser:
         if self._match(T.NIL):
             return Literal(None)
 
+        if self._match(T.IDENTIFIER):
+            return Variable(self._previous())
+
         if self._match(T.NUMBER, T.STRING):
             return Literal(self._previous().literal)
 
@@ -125,7 +128,7 @@ class Parser:
         self._consume(T.SEMICOLON, "Expect ';' after value.")
         return Print(value)
 
-    def _expression_statement(self):
+    def _expression_statement(self) -> Expression:
         expr = self._expression()
         self._consume(T.SEMICOLON, "Expect ';' after expression.")
         return Expression(expr)
@@ -135,9 +138,27 @@ class Parser:
             return self._print_statement()
         return self._expression_statement()
 
+    def _var_declaration(self) -> Var:
+        name = self._consume(T.IDENTIFIER, "Expect variable name.")
+
+        initializer: Expr = None
+        if self._match(T.EQUAL):
+            initializer = self._expression()
+        self._consume(T.SEMICOLON, "Expect ';' after variable declaration.")
+        return Var(name, initializer)
+
+    def _declaration(self) -> Stmt:
+        try:
+            if self._match(T.VAR):
+                return self._var_declaration()
+            return self._statement()
+        except ParseError:
+            self._synchronise()
+            return None
+
     # Finally public functions
     def parse(self) -> List[Stmt]:
         statements: List[Stmt] = []
         while not self._is_at_end():
-            statements.append(self._statement())
+            statements.append(self._declaration())
         return statements

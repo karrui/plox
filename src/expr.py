@@ -1,7 +1,6 @@
 from abc import abstractclassmethod
 import typing
 from dataclasses import dataclass
-from expr import Expr
 from _token import Token
 
 

@@ -15,8 +15,14 @@ def define_ast(output_dir: str, base_name: str, types: List[str]):
             "from abc import abstractclassmethod\n",
             "import typing\n",
             "from dataclasses import dataclass\n",
-            "from expr import Expr\n",
-            "from _token import Token\n\n\n",
+            "from _token import Token\n"
+        ])
+
+        if base_class_name != "Expr":
+            file.write("from expr import Expr\n")
+        file.write('\n\n')
+
+        file.writelines([
             f"class {base_class_name}:\n",
             f"{INDENT}@abstractclassmethod\n",
             f"{INDENT}def accept() -> typing.Any:\n",
