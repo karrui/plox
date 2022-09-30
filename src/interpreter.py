@@ -1,22 +1,19 @@
+from ast import Expression
 from decorators.visitor import visitor
 from expr import Binary, Expr, Grouping, Literal, Unary
 from _token import Token
 from token_type import TokenType as T
 from utils.equality import is_equal
+from utils.strings import stringify
 from utils.truthy import is_truthy
-
-
-class LoxRuntimeError(RuntimeError):
-    def __init__(self, token: Token, message: str) -> None:
-        super().__init__(token, message)
-        self.token = token
+from error import Error, LoxRuntimeError
 
 
 def check_number_operands(operator: Token, *operands: object):
     for operand in operands:
         if not isinstance(operand, float):
             err_msg = "Operand must be a number" if len(
-                operands) > 1 else "Operands must be numbers"
+                operands) == 1 else "Operands must be numbers"
             raise LoxRuntimeError(operator, err_msg)
 
 
@@ -38,6 +35,7 @@ class Interpreter:
 
         match expr.operator.type:
             case T.MINUS:
+                check_number_operands(expr.operator, right)
                 return -float(right)
             case T.BANG:
                 return not is_truthy(right)
@@ -87,3 +85,10 @@ class Interpreter:
 
         # Unreachable
         return None
+
+    def interpret(self, expression: Expr):
+        try:
+            value = self._evaluate(expression)
+            print(stringify(value))
+        except LoxRuntimeError as err:
+            Error.runtime_error(err)

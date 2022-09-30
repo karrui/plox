@@ -1,8 +1,19 @@
 from _token import TokenType, Token
 
 
+class LoxRuntimeError(RuntimeError):
+    def __init__(self, token: Token, message: str) -> None:
+        super().__init__(message)
+        self.token = token
+
+
 class Error:
     had_error = False
+    had_runtime_error = False
+
+    def runtime_error(err: LoxRuntimeError):
+        print(f"{str(err)}\n[line {err.token.line}]")
+        Error.had_runtime_error = True
 
     def parse_error(token: Token, message: str):
         if (token.type == TokenType.EOF):
