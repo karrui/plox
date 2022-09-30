@@ -1,3 +1,4 @@
+from typing import List
 from _token import Token
 from error import Error
 from utils.strings import is_alnum
@@ -10,9 +11,9 @@ class Scanner:
         self._current = 0
         self._line = 1
         self._source = source
-        self._tokens = []
+        self._tokens: List[Token] = []
 
-    def scan_tokens(self) -> list[str]:
+    def scan_tokens(self) -> List[Token]:
         while not self._is_at_end():
             self._start = self._current
             self.scan_token()
