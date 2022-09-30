@@ -1,8 +1,8 @@
 from typing import List
 from error import Error
 from _token import Token
-from expr import Assign, Binary, Expr, Grouping, Literal, Unary, Variable
-from stmt import Block, Expression, Print, Stmt, Var
+from expr import Assign, Binary, Expr, Grouping, Literal, Logical, Unary, Variable
+from stmt import Block, Expression, If, Print, Stmt, Var, While
 from token_type import TokenType as T
 
 
@@ -120,8 +120,24 @@ class Parser:
             expr = Binary(expr, operator, right)
         return expr
 
-    def _assignment(self):
+    def _and(self):
         expr = self._equality()
+        while self._match(T.AND):
+            operator = self._previous()
+            right = self._equality
+            expr = Logical(expr, operator, right)
+        return expr
+
+    def _or(self):
+        expr = self._and()
+        while self._match(T.OR):
+            operator = self._previous()
+            right = self._and()
+            expr = Logical(expr, operator, right)
+        return expr
+
+    def _assignment(self):
+        expr = self._or()
 
         if self._match(T.EQUAL):
             equals = self._previous()
@@ -152,11 +168,108 @@ class Parser:
         self._consume(T.RIGHT_BRACE, "Expect '}' after block.")
         return statements
 
+    def _if_statement(self):
+        self._consume(T.LEFT_PAREN, "Expect '(' after 'if'.")
+        condition = self._expression()
+        self._consume(T.RIGHT_PAREN, "Expect ')' after if condition.")
+
+        then_branch = self._statement()
+        else_branch = None
+
+        if self._match(T.ELSE):
+            else_branch = self._statement()
+        return If(condition, then_branch, else_branch)
+
+    def _while_statement(self):
+        self._consume(T.LEFT_PAREN,  "Expect '(' after 'while'.")
+        condition = self._expression()
+        self._consume(T.RIGHT_PAREN, "Expect ')' after condition.")
+
+        body = self._statement()
+        return While(condition, body)
+
+    def _for_statement(self):
+        """Desugaring technique to avoid handling/creating a new AST node"""
+        self._consume(T.LEFT_PAREN,  "Expect '(' after 'for'.")
+        initializer: Expr = None
+
+        if self._match(T.SEMICOLON):
+            """
+            If the token following `'('` is immediately semicolon, then
+            then initializer has been omitted:
+            if (; <condition>; <increment>)
+            """
+            pass
+        elif self._match(T.VAR):
+            initializer = self._var_declaration()
+        else:
+            """
+            Must be expression statement if not variable at this point.
+            """
+            initializer = self._expression_statement()
+
+        condition: Expr = None
+        if not self._check(T.SEMICOLON):
+            condition = self._expression()
+        self._consume(T.SEMICOLON, "Expect ';' after loop condition.")
+
+        increment: Expr = None
+        if not self._check(T.RIGHT_PAREN):
+            increment = self._expression()
+        self._consume(T.RIGHT_PAREN, "Expect ')' after for clauses.")
+
+        body = self._statement()
+
+        """
+        Various pieces of the `for` loop has been parsed, synthesize AST nodes now.
+        Basically turning:
+            for (var i = 0; i < 10; i = i + 1) print i;
+        into:
+            {
+                var i = 0;
+                while (i < 10) {
+                    print i;
+                    i = i + 1;
+                }
+            }
+        
+        Build from the bottom up.
+        """
+
+        """
+        Handle increment clause if there is one. Executes after the body in each iteration of loop.
+        The `print i; i = i + 1;` portion.
+        """
+        if increment is not None:
+            body = Block([body, Expression(increment)])
+
+        """
+        Build the loop using a primitive while loop.
+        If condition is omitted, force infinite loop using True.
+        """
+        if condition is None:
+            condition = Literal(True)
+        body = While(condition, body)
+
+        """
+        If there is initializer, run once before the entire loop.
+        """
+        if initializer is not None:
+            body = Block([initializer, body])
+
+        return body
+
     def _statement(self):
         if self._match(T.PRINT):
             return self._print_statement()
         if self._match(T.LEFT_BRACE):
             return Block(self._block())
+        if self._match(T.IF):
+            return self._if_statement()
+        if self._match(T.WHILE):
+            return self._while_statement()
+        if self._match(T.FOR):
+            return self._for_statement()
         return self._expression_statement()
 
     def _var_declaration(self):

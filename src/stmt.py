@@ -28,6 +28,16 @@ class Expression(Stmt):
 
 
 @dataclass(frozen=True)
+class If(Stmt):
+    condition: Expr
+    then_branch: Stmt
+    else_branch: Stmt
+
+    def accept(self, visitor):
+        return visitor.visit(self)
+
+
+@dataclass(frozen=True)
 class Print(Stmt):
     expression: Expr
 
@@ -39,6 +49,15 @@ class Print(Stmt):
 class Var(Stmt):
     name: Token
     initializer: Expr
+
+    def accept(self, visitor):
+        return visitor.visit(self)
+
+
+@dataclass(frozen=True)
+class While(Stmt):
+    condition: Expr
+    body: Stmt
 
     def accept(self, visitor):
         return visitor.visit(self)

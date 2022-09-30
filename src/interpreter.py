@@ -1,8 +1,8 @@
 from typing import List
 from decorators.visitor import visitor
 from environment import Environment
-from expr import Assign, Binary, Expr, Grouping, Literal, Unary, Variable
-from stmt import Block, Expression, Print, Stmt, Var
+from expr import Assign, Binary, Expr, Grouping, Literal, Logical, Unary, Variable
+from stmt import Block, Expression, If, Print, Stmt, Var, While
 from _token import Token
 from token_type import TokenType as T
 from utils.equality import is_equal
@@ -110,6 +110,19 @@ class Interpreter:
         self._environment.assign(expr.name, value)
         return value
 
+    @visitor(Logical)
+    def visit(self, expr: Logical):
+        left = self._evaluate(expr.left)
+        if expr.operator.type == T.OR:
+            # Short circuit if truthy.
+            if is_truthy(left):
+                return left
+        else:
+            if not is_truthy(left):
+                return left
+        # Evaluate right if left is not truthy.
+        return self._evaluate(expr.right)
+
     @visitor(Expression)
     def visit(self, stmt: Expression):
         self._evaluate(stmt.expression)
@@ -132,6 +145,20 @@ class Interpreter:
     @visitor(Block)
     def visit(self, stmt: Block):
         self._execute_block(stmt.statements, Environment(self._environment))
+        return None
+
+    @visitor(If)
+    def visit(self, stmt: If):
+        if is_truthy(self._evaluate(stmt.condition)):
+            self._execute(stmt.then_branch)
+        elif stmt.else_branch is not None:
+            self._execute(stmt.else_branch)
+        return None
+
+    @visitor(While)
+    def visit(self, stmt: While):
+        while is_truthy(self._evaluate(stmt.condition)):
+            self._execute(stmt.body)
         return None
 
     def interpret(self, statements: List[Stmt]):
