@@ -40,6 +40,16 @@ class Parser:
                 return True
         return False
 
+    def _synchronise(self):
+        self._advance()
+        while not self._is_at_end():
+            if self._previous().type == T.SEMICOLON:
+                return
+            match self._peek().type:
+                case T.CLASS | T.FUN | T.VAR | T.FOR | T.IF | T.WHILE | T.PRINT | T.RETURN:
+                    return
+            self._advance()
+
     def _error(self, token: Token, err_msg: str):
         Error.parse_error(token, err_msg)
         return ParseError()
@@ -64,6 +74,8 @@ class Parser:
             expr = self._expression()
             self._consume(T.RIGHT_PAREN, "Expect ')' after expression.")
             return Grouping(expr)
+
+        raise self._error(self._peek(), "Expect expression.")
 
     def _unary(self) -> Expr:
         while self._match(T.BANG, T.MINUS):
@@ -106,3 +118,10 @@ class Parser:
 
     def _expression(self) -> Expr:
         return self._equality()
+
+    # Finally public functions
+    def parse(self):
+        try:
+            return self._expression()
+        except ParseError:
+            return None

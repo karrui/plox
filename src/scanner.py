@@ -13,7 +13,7 @@ class Scanner:
         self._source = source
         self._tokens: List[Token] = []
 
-    def scan_tokens(self) -> list[str]:
+    def scan_tokens(self) -> List[Token]:
         while not self._is_at_end():
             self._start = self._current
             self.scan_token()

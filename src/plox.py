@@ -1,4 +1,6 @@
 import sys
+from ast_printer import AstPrinter
+from parser import Parser
 
 from scanner import Scanner
 from error import Error
@@ -26,9 +28,14 @@ class Plox:
     def run(self, source: str):
         scanner = Scanner(source)
         tokens = scanner.scan_tokens()
+        parser = Parser(tokens)
+        expression = parser.parse()
 
-        for token in tokens:
-            print(token)
+        # Stop if there was a syntax error.
+        if (Error.had_error):
+            return
+
+        print(AstPrinter().print(expression))
 
     def run_prompt(self) -> None:
         while True:
