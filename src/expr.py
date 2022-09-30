@@ -1,5 +1,6 @@
 import typing
 from dataclasses import dataclass
+from decorators.visitor import visitor
 from _token import Token
 
 
@@ -28,3 +29,21 @@ class Literal(Expr):
 class Unary(Expr):
     operator: Token
     right: Expr
+
+
+class AstVisitor:
+    @visitor(Binary)
+    def visit(self, expr):
+        pass
+
+    @visitor(Grouping)
+    def visit(self, expr):
+        pass
+
+    @visitor(Literal)
+    def visit(self, expr):
+        pass
+
+    @visitor(Unary)
+    def visit(self, expr):
+        pass
